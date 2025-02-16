@@ -64,7 +64,7 @@ class DashboardView(generics.GenericAPIView):
     
 
 class QualificationsView(generics.ListCreateAPIView):
-    permission_classes =(IsAuthenticated,)
+    # permission_classes =(IsAuthenticated,)
     queryset = Qualification.objects.all()
     serializer_class = QualificationSerializer
 
@@ -89,7 +89,7 @@ class QualificationUpdateView(generics.UpdateAPIView):
 
 
 class ExperienceView(generics.ListCreateAPIView):
-    permission_classes =(IsAuthenticated,)
+    # permission_classes =(IsAuthenticated,)
     queryset = Experience.objects.all()
     serializer_class = ExperienceSerializer
 
@@ -127,15 +127,26 @@ class ExperienceUpdateView(generics.UpdateAPIView):
 
 
 class MyProfileView(generics.GenericAPIView):
+    authentication_classes = [JWTAuthentication]
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
-        user_profile = UserProfile.objects.filter(email=request.user.email).first()  # 👈 Sirf logged-in user ka profile
+        if not request.user.is_authenticated:
+            return Response({"error": "User is not authenticated"}, status=401)
+
+        # Filter by email instead of user
+        user_profile = UserProfile.objects.filter(email=request.user.email).first()
+
+        if not user_profile:
+            return Response({"error": "User profile not found"}, status=404)
+
+
+    
 
         user_profile_data = UserProfileSerializer(user_profile).data if user_profile else {}
 
-        qualifications = Qualification.objects.filter(id=request.user.id)  # 👈 Sirf logged-in user ki qualifications
-        experiences = Experience.objects.filter(id=request.user.id)  # 👈 Sirf logged-in user ki experiences
+        qualifications = Qualification.objects.filter(user=request.user)  # ✅ Corrected filter
+        experiences = Experience.objects.filter(user=request.user)  # ✅ Corrected filter
 
         qualification_data = QualificationSerializer(qualifications, many=True).data
         experience_data = ExperienceSerializer(experiences, many=True).data
@@ -151,7 +162,7 @@ class MyProfileView(generics.GenericAPIView):
 
 
 class ProfileUpdateView(generics.UpdateAPIView):
-    permission_classes =(IsAuthenticated,)
+    # permission_classes =(IsAuthenticated,)
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
 
@@ -166,4 +177,21 @@ class ProfileUpdateView(generics.UpdateAPIView):
             "data": response.data 
         })
     
+
+
+
+
+#admin dashboard ke liye candidate new
+# from rest_framework.generics import ListAPIView
+# from rest_framework.permissions import IsAuthenticated
+# from rest_framework_simplejwt.authentication import JWTAuthentication
+# from .models import UserProfile
+# from .serializers import CandidateSerializer
+
+# class CandidateListView(ListAPIView):
+#     """✅ Admin Dashboard के लिए Registered Candidates Show करने की API"""
+#     authentication_classes = [JWTAuthentication]  # ✅ Token Authentication Enable
+#     permission_classes = [IsAuthenticated]  # ✅ सिर्फ Authenticated Users ही Access कर सकते हैं
+#     queryset = UserProfile.objects.all().order_by('-id')  # ✅ Latest Candidates First Show होंगे
+#     serializer_class = CandidateSerializer
 

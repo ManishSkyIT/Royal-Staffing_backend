@@ -93,3 +93,53 @@ class RolePermission(models.Model):
 
     def __str__(self):
         return f"{self.role.name} - {self.permission_name} (Read: {self.can_read}, Write: {self.can_write})"
+
+
+
+
+#admin job post section ok
+
+from django.db import models
+
+class JobPost(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    client_name = models.CharField(max_length=255, blank=True, null=True)
+    job_category = models.CharField(max_length=255, blank=True, null=True)
+    job_sub_category = models.CharField(max_length=255, blank=True, null=True)
+    job_title = models.CharField(max_length=255)
+    job_description = models.TextField()
+    job_position = models.CharField(max_length=255)
+    require_qualification = models.CharField(max_length=255)
+    min_experience = models.IntegerField(blank=True, null=True)
+    max_experience = models.IntegerField(blank=True, null=True)
+    min_salary = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    max_salary = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    require_skills = models.TextField(blank=True, null=True)
+    job_timing = models.CharField(max_length=255)
+    joining_date = models.DateField(blank=True, null=True)
+    last_interview_date = models.DateField(blank=True, null=True)
+    
+    # Salary & Facilities
+    facilities = models.TextField(blank=True, null=True)
+    ctc_salary = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    in_hand_salary = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    salary_deduction_details = models.TextField(blank=True, null=True)
+
+    # Job Location
+    address_line_1 = models.CharField(max_length=255)
+    address_line_2 = models.CharField(max_length=255, blank=True, null=True)
+    area_landmark = models.CharField(max_length=255)
+    country = models.CharField(max_length=255)
+    state = models.CharField(max_length=255)
+    city = models.CharField(max_length=255)
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.job_title} - {self.client_name}"

@@ -219,3 +219,368 @@ class CreateRoleWithPermissionsView(APIView):
 
         serializer = RoleSerializer(role)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
+
+#new wala candidate dashboard ke liey
+
+from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.contrib.auth.models import User
+from .serializers import CandidateSerializer  
+
+class CandidateListView(ListAPIView):
+    """✅ Admin Dashboard ke liye Registered Candidates Show karne ki API"""
+    # authentication_classes = [JWTAuthentication]  
+    # permission_classes = [IsAuthenticated]  
+    queryset = User.objects.prefetch_related('profile').order_by('-date_joined')  # ✅ Profile ko Prefetch kiya  
+    serializer_class = CandidateSerializer
+
+
+
+#download excel
+
+import openpyxl
+from django.http import HttpResponse
+from django.contrib.auth.models import User
+from candidate.models import Profile, Qualification, Experience, UserProfile
+
+def export_candidates_to_excel(request):
+    """✅ Candidates Data को Excel में Export करने की API"""
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Candidates Data"
+
+    # ✅ Header Row (जो आपने Provide किया है)
+    headers = [
+        "#", "Candidate", "Phone Number", "Email Address", "Education", "Highest Qualification",
+        "Education Board", "Medium", "Course", "Specialization", "University", "Percentage",
+        "Course Type", "Passing Year", "Highest Experience", "Organisation", "Designation",
+        "Working From", "Working Till", "Work Status", "Skills", "Address_line_1",
+        "Address_line_2", "Area", "Pincode", "Phone Number_2", "Whatsapp Number",
+        "Gender", "Birth Date", "Parent Name", "Parent Phone", "Nominee Name", "Nominee Phone",
+        "Aadhar Number", "Pan Number", "PF Number", "ESIC Number", "Created", "Status"
+    ]
+    ws.append(headers)
+
+    # ✅ Fetch Candidates Data
+    candidates = User.objects.prefetch_related('profile').all().order_by('-date_joined')
+
+    for index, candidate in enumerate(candidates, start=1):
+        profile = Profile.objects.filter(user=candidate).first()
+        qualification = Qualification.objects.filter(user=candidate).first()
+        experience = Experience.objects.filter(user=candidate).first()
+        user_profile = UserProfile.objects.filter(email=candidate.email).first()
+
+        ws.append([
+            index,
+            f"{candidate.first_name} {candidate.last_name}",
+            profile.phone_number if profile else "",
+            candidate.email,
+            qualification.education_level if qualification else "",
+            qualification.degree if qualification else "",
+            qualification.education_board if qualification else "",
+            qualification.school_medium if qualification else "",
+            qualification.degree if qualification else "",
+            qualification.specialization if qualification else "",
+            qualification.university if qualification else "",
+            qualification.percentage if qualification else "",
+            qualification.course_type if qualification else "",
+            qualification.passing_year if qualification else "",
+            "Experience" if (profile and profile.work_status == "Experience") else "Fresher",
+            experience.organisation if experience else "",
+            experience.designation if experience else "",
+            experience.started_working_from if experience else "",
+            experience.is_current_company if experience else "",
+            profile.work_status if profile else "",
+            profile.skills if profile else "",
+            user_profile.address_line1 if user_profile else "",
+            user_profile.address_line2 if user_profile else "",
+            user_profile.location if user_profile else "",
+            user_profile.pincode if user_profile else "",
+            user_profile.phone2 if user_profile else "",
+            user_profile.whatsapp_number if user_profile else "",
+            user_profile.gender if user_profile else "",
+            user_profile.birth_date if user_profile else "",
+            user_profile.parent_name if user_profile else "",
+            user_profile.parent_phone if user_profile else "",
+            user_profile.nominee_name if user_profile else "",
+            user_profile.nominee_phone if user_profile else "",
+            user_profile.aadhar_number if user_profile else "",
+            user_profile.pan_card_number if user_profile else "",
+            user_profile.pf_number if user_profile else "",
+            user_profile.esic_number if user_profile else "",
+            candidate.date_joined.strftime("%d-%m-%Y"),
+            "Active"
+        ])
+
+    # ✅ Response as Excel File
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = 'attachment; filename="candidates_data.xlsx"'
+    wb.save(response)
+    return response
+
+
+
+
+
+
+#employee admin ke liye
+
+from employees.models import EmployeesProfile
+from employees.serializers import EmployeesProfileSerializer
+from rest_framework.permissions import IsAdminUser
+from rest_framework.generics import UpdateAPIView
+
+class EmployeeStatusUpdateView(UpdateAPIView):
+    queryset = EmployeesProfile.objects.all()
+    serializer_class = EmployeesProfileSerializer
+    permission_classes = [IsAdminUser]
+
+    def patch(self, request, *args, **kwargs):
+        employee = self.get_object()
+        new_status = request.data.get("status")
+
+        if new_status not in ['approved', 'rejected']:
+            return Response({"error": "Invalid status"}, status=status.HTTP_400_BAD_REQUEST)
+
+        employee.status = new_status
+        employee.save()
+
+        return Response({"message": f"Employee status updated to {new_status}"}, status=status.HTTP_200_OK)
+    
+
+
+
+from rest_framework import generics, permissions
+from rest_framework.response import Response
+from employees.models import EmployeesProfile
+from employees.serializers import EmployeesProfileSerializer
+
+class EmployeesListView(generics.ListAPIView):
+    queryset = EmployeesProfile.objects.all()
+    serializer_class = EmployeesProfileSerializer
+    permission_classes = [permissions.IsAdminUser]  # Sirf admin access kar sakega
+
+    def list(self, request, *args, **kwargs):
+        employees = self.get_queryset()
+        data = []
+
+        for emp in employees:
+            data.append({
+                "id": emp.id,
+                "company_name": emp.company_name,
+                "company_phone": emp.company_phone_number,
+                "company_email": emp.company_email,
+                "company_address": emp.company_address,
+                "corporate_office_address": emp.corporate_office_address,
+                "authorised_person": {
+                    "name": emp.authorised_person_name,
+                    "position": emp.authorised_person_position,
+                    "phone": emp.authorised_person_phone_number,
+                    "email": emp.authorised_person_email_address
+                },
+                "created_at": emp.created_at.strftime("%b %d, %Y %I:%M %p"),  # Jan 29, 2025 12:27 PM format
+                "status": emp.status,
+            })
+
+        return Response(data)
+    
+
+class DeleteEmployeeView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def delete(self, request, employee_id):
+        employee = get_object_or_404(EmployeesProfile, id=employee_id)
+        user = employee.user  # User bhi delete karna hoga
+
+        employee.delete()  # EmployeesProfile delete
+        user.delete()  # User bhi delete
+        return Response({"message": "Employee deleted successfully"}, status=200)
+
+# ✅ 3. View Single Employee Data
+class EmployeeDetailView(generics.RetrieveAPIView):
+    queryset = EmployeesProfile.objects.all()
+    serializer_class = EmployeesProfileSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def get_serializer_context(self):
+        return {"request": self.request}
+
+
+
+
+import openpyxl
+from django.http import HttpResponse
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAdminUser
+from employees.models import EmployeesProfile
+
+class ExportEmployeesExcelView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, *args, **kwargs):
+        # ✅ Excel Workbook aur Sheet Create karna
+        workbook = openpyxl.Workbook()
+        sheet = workbook.active
+        sheet.title = "Employees Data"
+
+        # ✅ Header Row likhna
+        headers = [
+            "#", "Company", "Company Phone", "Company Email", "Company Address",
+            "Corporate Address", "Authorised Person", "Position", "Phone Number",
+            "Email Id", "Created", "Status"
+        ]
+        sheet.append(headers)
+
+        # ✅ Employees Data Fill Karna
+        employees = EmployeesProfile.objects.all()
+        for index, emp in enumerate(employees, start=1):
+            sheet.append([
+                index,
+                emp.company_name,
+                emp.company_phone_number,
+                emp.company_email,
+                emp.company_address,
+                emp.corporate_office_address,
+                emp.authorised_person_name,
+                emp.authorised_person_position,
+                emp.authorised_person_phone_number,
+                emp.authorised_person_email_address,
+                emp.created_at.strftime("%d-%m-%Y"),
+                emp.status,
+            ])
+
+        # ✅ Response Me Excel File Send Karna
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = 'attachment; filename="employees_data.xlsx"'
+        workbook.save(response)
+        return response
+
+
+
+
+#job post ka section ok admin ka
+
+
+from rest_framework import generics, permissions
+from admin_dashboard.models import JobPost
+from admin_dashboard.serializers import JobPostSerializer
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+
+# ✅ 1. Job List API (Admin)
+class JobPostListView(generics.ListCreateAPIView):
+    serializer_class = JobPostSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]  # ✅ Sirf Admin access
+
+    def get_queryset(self):
+        return JobPost.objects.all()
+
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from employees.models import JobPost as EmployeeJobPost
+from admin_dashboard.models import JobPost as AdminJobPost
+from employees.serializers import JobPostSerializer
+from admin_dashboard.serializers import AdminJobPostSerializer, JobPostSerializer
+from django.core.exceptions import ObjectDoesNotExist
+
+class AdminJobEditView(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get_serializer_class(self):
+        """✅ Admin ke liye alag serializer, Employee ke liye alag"""
+        job_id = self.kwargs["pk"]
+
+        if AdminJobPost.objects.filter(id=job_id).exists():
+            return JobPostSerializer  # ✅ Admin Job Ke Liye
+        elif EmployeeJobPost.objects.filter(id=job_id).exists():
+            return AdminJobPostSerializer  # ✅ Employee Job Ke Liye Bhi Admin Serializer (Kyuki Admin Edit Kar Raha Hai)
+        return JobPostSerializer
+
+    def get_object(self):
+        job_id = self.kwargs["pk"]
+
+        job = AdminJobPost.objects.filter(id=job_id).first()
+        if job:
+            return job
+
+        job = EmployeeJobPost.objects.filter(id=job_id).first()
+        if job:
+            return job
+
+        raise ObjectDoesNotExist("Job post not found")
+
+
+
+
+
+
+
+
+
+from rest_framework.views import APIView
+
+# ✅ Admin Ke Liye Job Delete API (Employee & Admin Dono Ke Jobs Ke Liye)
+class AdminJobDeleteView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def delete(self, request, pk, *args, **kwargs):
+        try:
+            job = AdminJobPost.objects.filter(id=pk).first()
+            if not job:
+                job = EmployeeJobPost.objects.filter(id=pk).first()
+
+            if not job:
+                return Response({"error": "Job post not found"}, status=404)
+
+            job.delete()
+            return Response({"message": "Job post deleted successfully"}, status=200)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+
+        
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from admin_dashboard.models import JobPost as AdminJobPost
+from employees.models import JobPost as EmployeeJobPost
+
+class AdminAllJobsView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get(self, request):
+        job_list = []
+
+        # ✅ 1. Admin Ke Jobs Fetch Karo
+        admin_jobs = AdminJobPost.objects.all()
+        for job in admin_jobs:
+            job_list.append({
+                "id": job.id,
+                "client_name": job.client_name,
+                "job_details": f"Hiring: {job.job_title}, Location: {job.city}, {job.state}, Qualification: {job.require_qualification}",
+                "job_category": job.job_category,
+                "status": job.status,
+            })
+
+        # ✅ 2. Employee Ke Jobs Fetch Karo
+        employee_jobs = EmployeeJobPost.objects.all()
+        for job in employee_jobs:
+            if job.created_by and hasattr(job.created_by, 'employees_profile'):
+                employee_profile = job.created_by.employees_profile
+                client_detail = f"{employee_profile.company_name} ({employee_profile.company_email})"
+            else:
+                client_detail = "Unknown"
+
+            job_list.append({
+                "id": job.id,
+                "client_name": client_detail,  # ✅ Employee Ki Details Show
+                "job_details": f"Hiring: {job.job_title}, Location: {job.city}, {job.state}, Qualification: {job.require_qualification}",
+                "job_category": job.job_category,
+                "statuss": job.statuss,
+            })
+
+        return Response(job_list, status=200)

@@ -2,8 +2,16 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Profile(models.Model):
+    WORK_STATUS_CHOICES = [
+        ('Fresher', 'Fresher'),
+        ('Experience', 'Experience'),
+    ]
+
+
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     phone_number = models.CharField(max_length=15)
+    work_status = models.CharField(max_length=10, choices=WORK_STATUS_CHOICES, default='Fresher')  # ✅ Work Status Field Added
     country = models.CharField(max_length=255)
     skills = models.CharField(max_length=255)
 
@@ -69,7 +77,7 @@ class Qualification(models.Model):
     ]
     
     # Fields for Qualifications model
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name="qualifications")
     education_level = models.CharField(max_length=50, choices=EDUCATION_CHOICES, null=True, blank=True)
     degree = models.CharField(max_length=100, choices=Degree_Choice, null=True, blank=True)
     specialization = models.CharField(max_length=100, null=True, blank=True)
@@ -87,7 +95,7 @@ class Qualification(models.Model):
     
 
 class Experience(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name="experiences")
     organisation = models.CharField(max_length=200, null=True, blank=True)
     designation = models.CharField(max_length=100, null=True, blank=True)  # use 'designation'
     
@@ -114,6 +122,7 @@ class MyProfile(models.Model):
 
 
 class UserProfile(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     # Personal details
     first_name = models.CharField(max_length=100, null=True, blank=True)
     middle_name = models.CharField(max_length=100, null=True, blank=True)
@@ -121,7 +130,7 @@ class UserProfile(models.Model):
     country = models.CharField(max_length=100, null=True, blank=True)
     phone = models.CharField(max_length=15, null=True, blank=True)
     phone2 = models.CharField(max_length=15, null=True, blank=True)
-    email = models.EmailField(null=True, blank=True)
+    email = models.EmailField(max_length=100,null=True, blank=True)
     whatsapp_number = models.CharField(max_length=15, null=True, blank=True)
     birth_date = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female'), ('Unknown', 'Unknown')], default='Unknown')

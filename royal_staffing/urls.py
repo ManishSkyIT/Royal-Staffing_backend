@@ -7,8 +7,11 @@ from rest_framework_simplejwt.views import (
 from candidate.views import RegisterView as CandidateRegisterView, LoginView as CandidateLoginView, DashboardView as CandidateDashboardView, QualificationsView as CandidateQualificationsView, QualificationDestroyView as CandidateQualificationDestroyView, QualificationUpdateView as CandidateQualificationUpdateView, ExperienceView as CandidateExperienceView
 from candidate.views import ExperienceDestroyView as CandidateExperienceDestroyView, ExperienceUpdateView as CandidateExperienceUpdateView, MyProfileView, ProfileUpdateView
 from employees.views import RegisterView as EmployeeRegisterView, LoginView as EmployeeLoginView, DashboardView as EmployeeDashboardView
+from employees.views import JobListView, CreateJobView, MyJobPostsView, EmployeesProfileView, UpdateProfileView
 from admin_dashboard.views import LoginView, DashboardView,AdminStaffRolesView, AdminStaffCreateView, AdminStaffListView, AdminStaffDeleteView, CreateRoleWithPermissionsView, AdminStaffRoleDetailView
-from admin_dashboard.views import AdminStaffDetailView, AdminStaffUpdateView
+from admin_dashboard.views import AdminStaffDetailView, AdminStaffUpdateView, CandidateListView, export_candidates_to_excel, EmployeeStatusUpdateView, EmployeesListView
+from admin_dashboard.views import EmployeeDetailView, DeleteEmployeeView, ExportEmployeesExcelView
+from admin_dashboard.views import JobPostListView, AdminJobEditView, AdminJobDeleteView, AdminAllJobsView
 
 urlpatterns = [
     # Admin path
@@ -36,6 +39,11 @@ urlpatterns = [
     path('api/employee/token/', TokenObtainPairView.as_view(), name='token_obtain_pair_employee'),
     path('api/employee/token/refresh/', TokenRefreshView.as_view(), name='token_refresh_employee'),
     path('api/employee/dashboard/', EmployeeDashboardView.as_view(), name="dashboard_employee"),
+    path('api/employee/jobs/', JobListView.as_view(), name='job-list'),
+    path('api/employee/jobs/create/', CreateJobView.as_view(), name='job-create'),
+    path('api/employee/my-job-posts/', MyJobPostsView.as_view(), name='my-job-posts'),
+    path('api/employee/my-profile/', EmployeesProfileView.as_view(), name='my-profile'),
+    path('api/employee/update-profile/', UpdateProfileView.as_view(), name='update-profile'),
     
 
     # Authentication routes for admin_dashboard
@@ -55,7 +63,22 @@ urlpatterns = [
     path('api/create-role-with-permissions/', CreateRoleWithPermissionsView.as_view(), name='create-role-with-permissions'),
     
 
+    path('api/admin_dashboard/candidates/', CandidateListView.as_view(), name='admin_candidates'),
+    path('api/admin_dashboard/export-candidates/', export_candidates_to_excel, name='export_candidates'),
 
+
+
+    # Admin APIs
+    path('api/admin_dashboard/employees/<int:pk>/', EmployeeStatusUpdateView.as_view(), name='employee-status-update'),
+    path('api/admin_dashboard/employees/', EmployeesListView.as_view(), name='employees-list'),
+    path('api/admin_dashboard/view/employees/<int:pk>/', EmployeeDetailView.as_view(), name='employee-detail'),  # ✅ View Single Employee
+    path('api/admin_dashboard/employees/delete/<int:employee_id>/', DeleteEmployeeView.as_view(), name='delete-employee'),  # ✅ Delete Employee
+    path('api/admin_dashboard/employees/export-excel/', ExportEmployeesExcelView.as_view(), name="export-employees-excel"),
+
+    path("api/admin_dashboard/add-new-jobs/", JobPostListView.as_view(), name="admin-jobpost-list"),  # ✅ Admin Panel API
+    path("api/admin_dashboard/jobposts/edit/<int:pk>/", AdminJobEditView.as_view(), name="admin-jobpost-detail"),  # ✅ Update API
+    path("api/admin_dashboard/jobposts/delete/<int:pk>/", AdminJobDeleteView.as_view(), name="admin-jobpost-delete"),  # ✅ Job Delete (Separate)
+    path("api/admin_dashboard/jobposts/", AdminAllJobsView.as_view(), name="admin-jobpost-table"), #job post dikhega
 ]
 
 

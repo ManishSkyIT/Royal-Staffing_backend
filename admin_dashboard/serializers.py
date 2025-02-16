@@ -106,3 +106,55 @@ class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         fields = ['id', 'name', 'permissions']
+
+
+
+
+#new wala hai ye candidate ke liye
+
+from rest_framework import serializers
+from django.contrib.auth.models import User
+from candidate.models import Profile  # ✅ Register Data `Profile` Model में है
+
+class CandidateSerializer(serializers.ModelSerializer):
+    candidate_name = serializers.SerializerMethodField()
+    phone_number = serializers.CharField(source='profile.phone_number')  # ✅ Profile से Phone Number
+    education = serializers.CharField(source='profile.skills', default="Any Graduate")  # ✅ Profile से Education (Default: Any Graduate)
+    experience = serializers.SerializerMethodField()  # ✅ Fresher / Experience
+    created_at = serializers.DateTimeField(source='date_joined', format="%b %d, %Y %I:%M %p")  # ✅ Register Date
+    status = serializers.CharField(default="Active")  # ✅ Default Status: Active
+
+    class Meta:
+        model = User  
+        fields = ['id', 'candidate_name', 'experience', 'phone_number', 'email', 'education', 'created_at', 'status']
+
+    def get_candidate_name(self, obj):
+        return f"{obj.first_name} {obj.last_name}"
+
+    def get_experience(self, obj):
+        """✅ Work Status को Show करना (Fresher / Experience)"""
+        profile = Profile.objects.filter(user=obj).first()
+        return profile.work_status if profile else "Fresher"
+
+
+
+#job post ke liye admin ka
+
+
+from rest_framework import serializers
+from admin_dashboard.models import JobPost
+
+class JobPostSerializer(serializers.ModelSerializer):
+    
+
+    class Meta:
+        model = JobPost
+        fields = "__all__"
+
+
+from rest_framework import serializers
+from employees.models import JobPost
+class AdminJobPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobPost
+        fields = '__all__'  # ✅ Admin ke liye sab fields dikhni chahiye
