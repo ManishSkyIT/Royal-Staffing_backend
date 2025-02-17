@@ -158,3 +158,17 @@ class AdminJobPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobPost
         fields = '__all__'  # ✅ Admin ke liye sab fields dikhni chahiye
+
+
+
+
+#human resource ke liye
+
+
+from rest_framework import serializers
+from admin_dashboard.models import JobTiming
+
+class JobTimingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobTiming
+        fields = "__all__"

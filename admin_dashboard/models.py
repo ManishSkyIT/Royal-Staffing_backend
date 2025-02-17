@@ -143,3 +143,21 @@ class JobPost(models.Model):
 
     def __str__(self):
         return f"{self.job_title} - {self.client_name}"
+
+
+
+
+#human resource ke liye
+
+from django.db import models
+
+class JobTiming(models.Model):
+    title = models.CharField(max_length=255)  # ✅ Job ka naam (Full Time, Shift Job, etc.)
+    hours = models.IntegerField()  # ✅ Kitne ghante ka shift hai
+    sort = models.IntegerField(default=0)  # ✅ Kis order me dikhna chahiye
+
+    class Meta:
+        ordering = ['sort']  # ✅ Sorting ke liye
+
+    def __str__(self):
+        return f"{self.title} ({self.hours} Hours)"

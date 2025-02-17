@@ -11,7 +11,7 @@ from employees.views import JobListView, CreateJobView, MyJobPostsView, Employee
 from admin_dashboard.views import LoginView, DashboardView,AdminStaffRolesView, AdminStaffCreateView, AdminStaffListView, AdminStaffDeleteView, CreateRoleWithPermissionsView, AdminStaffRoleDetailView
 from admin_dashboard.views import AdminStaffDetailView, AdminStaffUpdateView, CandidateListView, export_candidates_to_excel, EmployeeStatusUpdateView, EmployeesListView
 from admin_dashboard.views import EmployeeDetailView, DeleteEmployeeView, ExportEmployeesExcelView
-from admin_dashboard.views import JobPostListView, AdminJobEditView, AdminJobDeleteView, AdminAllJobsView
+from admin_dashboard.views import JobPostListView, AdminJobEditView, AdminJobDeleteView, AdminAllJobsView, JobTimingListCreateView, JobTimingDetailView
 
 urlpatterns = [
     # Admin path
@@ -63,22 +63,27 @@ urlpatterns = [
     path('api/create-role-with-permissions/', CreateRoleWithPermissionsView.as_view(), name='create-role-with-permissions'),
     
 
-    path('api/admin_dashboard/candidates/', CandidateListView.as_view(), name='admin_candidates'),
-    path('api/admin_dashboard/export-candidates/', export_candidates_to_excel, name='export_candidates'),
+    path('api/admin_dashboard/candidates/', CandidateListView.as_view(), name='admin_candidates'), #candidate data on admin dashboard
+    path('api/admin_dashboard/export-candidates/', export_candidates_to_excel, name='export_candidates'), #export in excel file
 
 
 
     # Admin APIs
-    path('api/admin_dashboard/employees/<int:pk>/', EmployeeStatusUpdateView.as_view(), name='employee-status-update'),
-    path('api/admin_dashboard/employees/', EmployeesListView.as_view(), name='employees-list'),
+    path('api/admin_dashboard/employees/<int:pk>/', EmployeeStatusUpdateView.as_view(), name='employee-status-update'), #employee status approved 
+    path('api/admin_dashboard/employees/', EmployeesListView.as_view(), name='employees-list'), #employee list on admin dashboard
     path('api/admin_dashboard/view/employees/<int:pk>/', EmployeeDetailView.as_view(), name='employee-detail'),  # ✅ View Single Employee
     path('api/admin_dashboard/employees/delete/<int:employee_id>/', DeleteEmployeeView.as_view(), name='delete-employee'),  # ✅ Delete Employee
     path('api/admin_dashboard/employees/export-excel/', ExportEmployeesExcelView.as_view(), name="export-employees-excel"),
 
-    path("api/admin_dashboard/add-new-jobs/", JobPostListView.as_view(), name="admin-jobpost-list"),  # ✅ Admin Panel API
-    path("api/admin_dashboard/jobposts/edit/<int:pk>/", AdminJobEditView.as_view(), name="admin-jobpost-detail"),  # ✅ Update API
+    path("api/admin_dashboard/add-new-jobs/", JobPostListView.as_view(), name="admin-jobpost-list"),  # admin add new job
+    path("api/admin_dashboard/jobposts/edit/<int:pk>/", AdminJobEditView.as_view(), name="admin-jobpost-detail"),  # edit job post on admin
     path("api/admin_dashboard/jobposts/delete/<int:pk>/", AdminJobDeleteView.as_view(), name="admin-jobpost-delete"),  # ✅ Job Delete (Separate)
     path("api/admin_dashboard/jobposts/", AdminAllJobsView.as_view(), name="admin-jobpost-table"), #job post dikhega
+
+
+
+    path("api/admin_dashboard/job-timings/", JobTimingListCreateView.as_view(), name="job-timings-list-create"), #admin dashboard human resourse job timing
+    path("api/admin_dashboard/job-timings/<int:pk>/", JobTimingDetailView.as_view(), name="job-timing-detail"),  #edit and delete job timing
 ]
 
 

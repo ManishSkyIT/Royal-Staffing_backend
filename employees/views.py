@@ -87,11 +87,11 @@ from .serializers import JobPostSerializer
 
 # ✅ Job List API
 class JobListView(generics.ListAPIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = (IsAuthenticated,)
+    # authentication_classes = [JWTAuthentication]
+    # permission_classes = (IsAuthenticated,)
     queryset = JobPost.objects.all().order_by('-created_att')
     serializer_class = JobPostSerializer
-    permission_classes = [permissions.IsAuthenticated]  # केवल लॉगिन यूजर ही देख सकते हैं
+    # permission_classes = [permissions.IsAuthenticated]  # केवल लॉगिन यूजर ही देख सकते हैं
 
 # ✅ Create Job API
 from rest_framework import generics, permissions
@@ -110,6 +110,7 @@ class CreateJobView(generics.CreateAPIView):
     # def perform_create(self, serializer):
     #     serializer.save(created_by=self.request.user)  # ✅ Employee ka job store hoga
 
+    
 
 
 

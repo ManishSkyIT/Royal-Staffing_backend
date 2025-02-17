@@ -43,6 +43,7 @@ class EmployeesProfile(models.Model):
 
 from django.db import models
 from django.contrib.auth.models import User
+from admin_dashboard.models import JobTiming
 
 class JobPost(models.Model):
     STATUS_CHOICES = [
@@ -60,8 +61,8 @@ class JobPost(models.Model):
     max_experience = models.IntegerField(null=True, blank=True)
     min_salary = models.DecimalField(max_digits=10, decimal_places=2)
     max_salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    job_timing = models.ForeignKey(JobTiming, on_delete=models.CASCADE)
     require_skills = models.TextField(null=True, blank=True)
-    job_timing = models.CharField(max_length=255)
     joining_date = models.DateField(null=True, blank=True)
     last_interview_date = models.DateField(null=True, blank=True)
 

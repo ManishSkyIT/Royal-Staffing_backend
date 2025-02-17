@@ -88,12 +88,17 @@ class LoginSerializer(serializers.Serializer):
 
 from rest_framework import serializers
 from .models import JobPost
+from admin_dashboard.models import JobTiming
 
 class JobPostSerializer(serializers.ModelSerializer):
+    job_timing = serializers.PrimaryKeyRelatedField(
+        queryset=JobTiming.objects.all()  # ✅ Sirf Admin ke Banaye Hue Timings Show Honge
+    )  
+
     class Meta:
         model = JobPost
         exclude = ['statuss']  # ✅ Employee ko status input nahi dikhega
-
+        
     def create(self, validated_data):
         validated_data['statuss'] = 'requested'  # ✅ Auto set requested
         return super().create(validated_data)

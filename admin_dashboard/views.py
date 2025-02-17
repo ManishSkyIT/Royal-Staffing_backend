@@ -337,7 +337,7 @@ from rest_framework.generics import UpdateAPIView
 class EmployeeStatusUpdateView(UpdateAPIView):
     queryset = EmployeesProfile.objects.all()
     serializer_class = EmployeesProfileSerializer
-    permission_classes = [IsAdminUser]
+    # permission_classes = [IsAdminUser]
 
     def patch(self, request, *args, **kwargs):
         employee = self.get_object()
@@ -362,7 +362,7 @@ from employees.serializers import EmployeesProfileSerializer
 class EmployeesListView(generics.ListAPIView):
     queryset = EmployeesProfile.objects.all()
     serializer_class = EmployeesProfileSerializer
-    permission_classes = [permissions.IsAdminUser]  # Sirf admin access kar sakega
+    # permission_classes = [permissions.IsAdminUser]  # Sirf admin access kar sakega
 
     def list(self, request, *args, **kwargs):
         employees = self.get_queryset()
@@ -404,7 +404,7 @@ class DeleteEmployeeView(APIView):
 class EmployeeDetailView(generics.RetrieveAPIView):
     queryset = EmployeesProfile.objects.all()
     serializer_class = EmployeesProfileSerializer
-    permission_classes = [permissions.IsAdminUser]
+    # permission_classes = [permissions.IsAdminUser]
 
     def get_serializer_context(self):
         return {"request": self.request}
@@ -473,7 +473,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 # ✅ 1. Job List API (Admin)
 class JobPostListView(generics.ListCreateAPIView):
     serializer_class = JobPostSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]  # ✅ Sirf Admin access
+    # permission_classes = [IsAuthenticated, IsAdminUser]  # ✅ Sirf Admin access
 
     def get_queryset(self):
         return JobPost.objects.all()
@@ -487,7 +487,7 @@ from admin_dashboard.serializers import AdminJobPostSerializer, JobPostSerialize
 from django.core.exceptions import ObjectDoesNotExist
 
 class AdminJobEditView(generics.RetrieveUpdateAPIView):
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    # permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get_serializer_class(self):
         """✅ Admin ke liye alag serializer, Employee ke liye alag"""
@@ -524,7 +524,7 @@ from rest_framework.views import APIView
 
 # ✅ Admin Ke Liye Job Delete API (Employee & Admin Dono Ke Jobs Ke Liye)
 class AdminJobDeleteView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    # permission_classes = [IsAuthenticated, IsAdminUser]
 
     def delete(self, request, pk, *args, **kwargs):
         try:
@@ -550,7 +550,7 @@ from admin_dashboard.models import JobPost as AdminJobPost
 from employees.models import JobPost as EmployeeJobPost
 
 class AdminAllJobsView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    # permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get(self, request):
         job_list = []
@@ -584,3 +584,29 @@ class AdminAllJobsView(APIView):
             })
 
         return Response(job_list, status=200)
+
+
+
+
+
+
+#human resource ke liye
+
+
+
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from admin_dashboard.models import JobTiming
+from admin_dashboard.serializers import JobTimingSerializer
+
+# ✅ Create & List Job Timings
+class JobTimingListCreateView(generics.ListCreateAPIView):
+    queryset = JobTiming.objects.all()
+    serializer_class = JobTimingSerializer
+    # permission_classes = [IsAuthenticated, IsAdminUser]
+
+# ✅ Edit & Delete Job Timing
+class JobTimingDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = JobTiming.objects.all()
+    serializer_class = JobTimingSerializer
+    # permission_classes = [IsAuthenticated, IsAdminUser]
